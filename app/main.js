@@ -6,8 +6,6 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data",(data)=>{
-    console.log(`${data}`);
-
     connection.write("+PONG\r\n");
   })
 });
