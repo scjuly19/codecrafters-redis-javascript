@@ -2,19 +2,41 @@ const net = require("net");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
+const parseRequest = (data) => {
+  const clientRequest = data.toString().trim().split("\r\n");
 
+  return {
+    command: clientRequest[2].toLowerCase(),
+    key: clientRequest[4],
+    value: clientRequest[6]
+  }
+}
+const dataStore = new Map();
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data", (data) => {
-    const clientReq = data.toString().trim().split("\r\n");
-    const cmd = clientReq[2].toLowerCase();
-    const msg = clientReq[4]
-    switch (cmd) {
+    const { command, key, value } = parseRequest(data)
+
+    switch (command) {
       case "echo":
-        connection.write(`+${msg}\r\n`)
+        connection.write(`+${key}\r\n`)
+        break;
+      case "ping":
+        connection.write("+PONG\r\n");
+        break;
+      case "set":
+        dataStore.set(key, value);
+        connection.write("+OK\r\n");
+        break;
+      case "get":
+        const val = dataStore.get(key);
+        if(val){
+        connection.write(`+${val}\r\n`);
+        }
+        else return;
         break;
       default:
-        connection.write("+PONG\r\n");
+        connection.write("+unknown command\r\n");
         break
     }
   })
