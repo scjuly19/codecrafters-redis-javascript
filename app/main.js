@@ -2,16 +2,24 @@ const net = require("net");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
+const expiryTimes = new Map();
+const dataStore = new Map();
+
 const parseRequest = (data) => {
   const clientRequest = data.toString().trim().split("\r\n");
+  const command = clientRequest[2].toLowerCase()
+  const key = clientRequest[4]
+  const value = clientRequest[6]
+  if (clientRequest.indexOf('px') !== -1) {
+    const expiryIndex = clientRequest.indexOf('px') + 2
+    const expiryTime = clientRequest[expiryIndex]
+    expiryTimes[key] = new Date(new Date().getTime() + parseInt(expiryTime))
+  }
 
   return {
-    command: clientRequest[2].toLowerCase(),
-    key: clientRequest[4],
-    value: clientRequest[6]
+    command, key, value
   }
 }
-const dataStore = new Map();
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data", (data) => {
@@ -30,10 +38,16 @@ const server = net.createServer((connection) => {
         break;
       case "get":
         const val = dataStore.get(key);
-        if(val){
-        connection.write(`+${val}\r\n`);
+        if (expiryTimes[key] && expiryTimes[key] < new Date()) {
+          delete expiryTimes[key]
+          delete dataStore[key]
+          connection.write("$-1\r\n");
+
         }
-        else return;
+        else {
+          connection.write(`+${val}\r\n`);
+        }
+        return;
         break;
       default:
         connection.write("+unknown command\r\n");
