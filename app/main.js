@@ -1,10 +1,11 @@
 const net = require("net");
+const process = require('process');
+
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
 const expiryTimes = new Map();
 const dataStore = new Map();
-
 const parseRequest = (data) => {
   const clientRequest = data.toString().trim().split("\r\n");
   const command = clientRequest[2].toLowerCase()
@@ -20,6 +21,14 @@ const parseRequest = (data) => {
     command, key, value
   }
 }
+let customPort = 6379;
+process.argv.forEach((val, index) => {
+  console.log(`${index}: ${val}`);
+  if (val.includes('port') && process.argv[index + 1] !== undefined) {
+    customPort = parseInt(process.argv[index + 1])
+  }
+})
+console.log('custom port****',customPort)
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data", (data) => {
@@ -56,4 +65,4 @@ const server = net.createServer((connection) => {
   })
 });
 
-server.listen(6379, "127.0.0.1");
+server.listen(customPort, "127.0.0.1");
