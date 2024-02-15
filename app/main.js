@@ -23,17 +23,14 @@ const parseRequest = (data) => {
 }
 let customPort = 6379;
 process.argv.forEach((val, index) => {
-  console.log(`${index}: ${val}`);
   if (val.includes('port') && process.argv[index + 1] !== undefined) {
     customPort = parseInt(process.argv[index + 1])
   }
 })
-console.log('custom port****',customPort)
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data", (data) => {
     const { command, key, value } = parseRequest(data)
-
     switch (command) {
       case "echo":
         connection.write(`+${key}\r\n`)
