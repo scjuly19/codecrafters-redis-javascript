@@ -53,8 +53,10 @@ const server = net.createServer((connection) => {
         else {
           connection.write(`+${val}\r\n`);
         }
-        return;
         break;
+        case "info":
+          connection.write(`$11\r\nrole:master\r\n`);
+
       default:
         connection.write("+unknown command\r\n");
         break
